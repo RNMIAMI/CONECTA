@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>CONECTA | Manutenções</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<div class="login" id="loginScreen">
+  <div class="smoke"></div>
+
+  <div class="login-box">
+    <div class="tabs">
+      <div class="tab active" onclick="trocarLogin('zelador')" id="btnZelador">Login Zelador</div>
+      <div class="tab" onclick="trocarLogin('adm')" id="btnAdm">Login Admin</div>
+      <div class="slider" id="slider"></div>
+    </div>
+
+    <div class="brand">CONECTA <span>Manutenções</span></div>
+
+    <input id="login" placeholder="Login">
+    <input id="senha" type="password" placeholder="Senha">
+    <button onclick="doLogin()">Entrar</button>
+  </div>
+</div>
+
+<div class="modalErro" id="modalErro">
+  <div class="modalBox">
+    <h2>Ops...</h2>
+    <p>Login ou senha inválido</p>
+    <button onclick="fecharModal()">Fechar</button>
+  </div>
+</div>
+
+<div id="app" style="display:none">
+<header>
+  <div class="brand">CONECTA <span>Manutenções</span></div>
+  <div>
+    <select id="mesSelecionado" onchange="render()">
+      <option value="0">Janeiro</option><option value="1">Fevereiro</option><option value="2">Março</option>
+      <option value="3">Abril</option><option value="4">Maio</option><option value="5">Junho</option>
+      <option value="6">Julho</option><option value="7">Agosto</option><option value="8">Setembro</option>
+      <option value="9">Outubro</option><option value="10">Novembro</option><option value="11">Dezembro</option>
+    </select>
+    <button onclick="logout()">Sair</button>
+  </div>
+</header>
+
+<main>
+  <div class="card" id="dashboard"></div>
+
+  <div class="card" id="condominioBox">
+    <h3>Condomínio (ADM)</h3>
+    <select id="condominio" onchange="render()">
+      <option>Haus Mitre Butantã</option>
+      <option>Image</option>
+    </select>
+  </div>
+
+  <div class="card" id="painelPreventivas">
+    <h3>Preventivas Obrigatórias do Mês</h3>
+    <div class="grid" id="gridPreventivas"></div>
+    <button onclick="salvarPreventivas()">Salvar Preventivas do Mês</button>
+  </div>
+
+  <div class="card" id="painelZelador">
+    <h3>Adicionar Manutenção (Preventiva ou Corretiva)</h3>
+    <input id="nome" placeholder="Nome da manutenção">
+    <input id="data" type="date">
+    <textarea id="descricao" placeholder="Descrição"></textarea>
+    <select id="tipo">
+      <option value="Preventiva">Preventiva</option>
+      <option value="Corretiva">Corretiva</option>
+    </select>
+    <select id="categoria">
+      <option>Elevador</option><option>Gerador</option><option>Bombas</option>
+      <option>Portões</option><option>Piscina</option><option>Outros</option>
+    </select>
+    <input id="foto" type="file" accept="image/*">
+    <button onclick="salvar()">Salvar</button>
+  </div>
+
+  <div class="card">
+    <h3>Manutenções Registradas no Mês</h3>
+    <div id="lista"></div>
+  </div>
+
+  <div class="card" id="painelAdm">
+    <h3>Jornal Informativo (ADM)</h3>
+    <button onclick="gerarPDF()">Baixar PDF</button>
+  </div>
+</main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
