@@ -107,15 +107,19 @@ function render(){
   const cond=condFixado||condominio.value;
   const dados=getData().filter(m=>m.cond===cond && new Date(m.data).getMonth()==mes);
 
-  lista.innerHTML="";
-  dados.forEach(m=>{
-    lista.innerHTML+=`
-      <div class="item">
-        <b>${m.nome}</b> (${m.tipo}) - ${m.categoria}<br>
-        ${m.data}<br>${m.desc||""}
-        ${m.foto?`<img src="${m.foto}">`:""}
-      </div>`;
-  });
+lista.innerHTML="";
+dados.forEach((m,index)=>{
+  lista.innerHTML+=`
+    <div class="item">
+      <b>${m.nome}</b> (${m.tipo}) - ${m.categoria}<br>
+      ${m.data}<br>${m.desc||""}
+      ${m.foto?`<img src="${m.foto}">`:""}
+      ${perfilAtual==="ZELADOR"
+        ? `<br><button onclick="excluirManutencao(${index})" style="background:#d9534f;margin-top:8px">Excluir</button>`
+        : ""
+      }
+    </div>`;
+});
 
   dashboard.innerHTML=`<h3>Dashboard do Mês</h3>
     <div class="dashboard">
@@ -124,12 +128,21 @@ function render(){
       <div class="kpi">Corretivas: ${dados.filter(m=>m.tipo==="Corretiva").length}</div>
     </div>`;
 
-  gridPreventivas.innerHTML=obrigatorias.map(o=>`
+gridPreventivas.innerHTML = obrigatorias.map(o=>{
+  return `
     <div class="card">
       <b>${o}</b>
       <input type="date" id="prev_${o}">
-      ${o==="Piscina"?`<label><input type="checkbox" id="nao_${o}"> Prédio não possui piscina</label>`:""}
-    </div>`).join("");
+      ${(o==="Piscina" || o==="Gerador")
+        ? `<label>
+            <input type="checkbox" id="nao_${o}">
+            Prédio não possui ${o.toLowerCase()}
+           </label>`
+        : ""
+      }
+    </div>
+  `;
+}).join("");
 }
 
 function salvar(){
@@ -149,8 +162,111 @@ function salvar(){
 }
 
 function gerarPDF(){
-  if(perfilAtual!=="ADM")return;
-  const doc=new jsPDF();
-  doc.text("JORNAL DE MANUTENÇÕES",20,30);
-  doc.save("jornal-manutencoes.pdf");
+  if(perfilAtual!=="ADM") return;
+
+  const doc = new jsPDF();
+
+  // =========================
+  // FUNÇÃO PARA DESENHAR BORDA PROFISSIONAL
+  // =========================
+  function desenharBorda(){
+    doc.setDrawColor(65,105,225); // Azul Royal
+    doc.setLineWidth(4);
+    doc.rect(10,10,190,277); // Borda externa grossa
+
+    doc.setLineWidth(1);
+    doc.rect(15,15,180,267); // Borda interna fina
+  }
+
+  // =========================
+  // CAPA
+  // =========================
+  desenharBorda();
+
+  doc.setTextColor(65,105,225);
+  doc.setFontSize(42);
+  doc.text("JORNAL INFORMATIVO",105,130,{align:"center"});
+
+  doc.setFontSize(22);
+  doc.text("CITTIC",105,160,{align:"center"});
+
+  doc.setFontSize(14);
+  doc.setTextColor(0,0,0);
+  doc.text("SÍNDICO RESPONSÁVEL PELO CONDOMÍNIO:",105,190,{align:"center"});
+  doc.text("VALTER SANTANA",105,200,{align:"center"});
+
+  doc.addPage();
+
+  // =========================
+  // PÁGINAS DE MANUTENÇÃO
+  // =========================
+  const mes = mesSelecionado.value;
+  const cond = condFixado || condominio.value;
+  const dados = getData().filter(m=>m.cond===cond && new Date(m.data).getMonth()==mes);
+
+  let y=25;
+  let contador=0;
+
+  dados.forEach(m=>{
+
+    if(contador===2){
+      doc.addPage();
+      desenharBorda();
+      y=25;
+      contador=0;
+    }
+
+    desenharBorda();
+
+    doc.setFontSize(22);
+    doc.setTextColor(65,105,225);
+    doc.text(m.nome,105,y,{align:"center"});
+
+    if(m.foto){
+      doc.addImage(m.foto,"JPEG",25,y+10,160,110);
+    }
+
+    y+=135;
+    contador++;
+  });
+
+  doc.save("jornal-informativo.pdf");
+}
+
+function excluirManutencao(index){
+  const mes = mesSelecionado.value;
+  const cond = condFixado || condominio.value;
+
+  let dados = getData();
+  const filtrados = dados.filter(m=>!(m.cond===cond && new Date(m.data).getMonth()==mes));
+  
+  const atuais = dados.filter(m=>m.cond===cond && new Date(m.data).getMonth()==mes);
+
+  atuais.splice(index,1);
+
+  setData([...filtrados,...atuais]);
+  render();
+}
+function mostrarMensagem(texto, sucesso){
+
+  const div = document.createElement("div");
+
+  div.style.position="fixed";
+  div.style.top="50%";
+  div.style.left="50%";
+  div.style.transform="translate(-50%,-50%)";
+  div.style.padding="25px 40px";
+  div.style.borderRadius="15px";
+  div.style.fontWeight="bold";
+  div.style.color="#fff";
+  div.style.zIndex="9999";
+  div.style.fontSize="18px";
+  div.style.boxShadow="0 10px 25px rgba(0,0,0,0.3)";
+  div.style.background = sucesso ? "#1aa06d" : "#d9534f";
+
+  div.innerText = texto;
+
+  document.body.appendChild(div);
+
+  setTimeout(()=>div.remove(),2000);
 }
